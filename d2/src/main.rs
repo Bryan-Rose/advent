@@ -25,30 +25,70 @@ fn main() {
 
     let lines = content.lines();
 
-    let mut ids_total: u32 = 0;
+    let mut ids_total_part_one: u32 = 0;
+    let mut power_total_part_two: u32 = 0;
 
     for line in lines {
-        match process_line(line) {
-            Some(game) => {
-                if valid_line(&game, &allowed) {
-                    ids_total += game.id;
-                }
-            }
-            None => {}
+        let opt_line = parse_line(line);
+        if opt_line.is_none() {
+            continue;
         }
+        let game_line = opt_line.unwrap();
+        if valid_line_part_one(&game_line, &allowed) {
+            ids_total_part_one += game_line.id;
+        }
+
+        let min_set = min_cubes(&game_line);
+        println!(
+            "{} - {} red {} blue {} green",
+            game_line.id, min_set.red, min_set.blue, min_set.green
+        );
+        let power = min_set.red * min_set.blue * min_set.green;
+        power_total_part_two += power;
     }
 
-    println!("{}", ids_total);
+    println!("Part 1 - {}", ids_total_part_one);
+    println!("Part 2 - {}", power_total_part_two);
 }
 
-fn valid_line(game: &GameDraws, allowed: &GameCubes) -> bool {
+fn min_cubes(game: &GameDraws) -> GameCubes {
+    let red = game
+        .draws
+        .iter()
+        .map(|x| x.red)
+        .filter(|x| x > &0)
+        .max()
+        .unwrap_or(1);
+    let blue = game
+        .draws
+        .iter()
+        .map(|x| x.blue)
+        .filter(|x| x > &0)
+        .max()
+        .unwrap_or(1);
+    let green = game
+        .draws
+        .iter()
+        .map(|x| x.green)
+        .filter(|x| x > &0)
+        .max()
+        .unwrap_or(1);
+
+    return GameCubes {
+        red: red,
+        blue: blue,
+        green: green,
+    };
+}
+
+fn valid_line_part_one(game: &GameDraws, allowed: &GameCubes) -> bool {
     return game
         .draws
         .iter()
         .all(|g| g.red <= allowed.red && g.blue <= allowed.blue && g.green <= allowed.green);
 }
 
-fn process_line(line: &str) -> Option<GameDraws> {
+fn parse_line(line: &str) -> Option<GameDraws> {
     //Game 8: 19 red, 1 green, 4 blue; 14 blue; 2 red, 3 blue
     if line.starts_with("Game") == false {
         return None;
