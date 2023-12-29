@@ -1,7 +1,3 @@
-use regex::Captures;
-use regex::Regex;
-use std::collections::HashMap;
-use std::env;
 use std::fs;
 
 fn main() {
@@ -15,28 +11,35 @@ fn main() {
 
     let lines: Vec<&str> = contents.split('\n').collect();
 
-    let re_num = Regex::new(r"[0-9]").unwrap();
     let mut running_total = 0;
     for line in lines {
-        let caps: Vec<Captures<'_>> = re_num.captures_iter(line).collect();
-        if caps.is_empty() {
+        let num = parse_line(line);
+        if num.is_none() {
             continue;
         }
+        let nnum = num.unwrap();
 
-        let first: String = caps.first().unwrap().get(0).unwrap().as_str().to_owned();
-        let last: &str = caps.last().unwrap().get(0).unwrap().as_str();
+        println!("{nnum}");
 
-        let both = first + last;
-        println!("{both}");
-        let line_val: u32 = both.parse().unwrap();
-
-        running_total += line_val;
+        running_total += nnum;
     }
 
     println!("{running_total}");
 }
 
-fn parse_line(line: &str) -> &u32 {
+fn parse_line(line: &str) -> Option<u32> {
+    let mut matches = get_matches(line);
+    if matches.len() == 0 {
+        return None;
+    }
+    matches.sort_by(|a, b| a.0.cmp(&b.0));
+    let first = matches.get(0).unwrap().1;
+    let last = matches.last().unwrap().1;
+    let line_num = (first * 10) + last;
+    return Some(line_num);
+}
+
+fn get_matches(line: &str) -> Vec<SearchMatch> {
     let searches = [
         ("0", 0),
         ("1", 1),
@@ -60,22 +63,17 @@ fn parse_line(line: &str) -> &u32 {
         ("zero", 0),
     ];
 
-    searches.map(|s| line.match_indices(s));
+    let mut matches: Vec<SearchMatch> = Vec::new();
 
     for (s, i) in searches {
-        //line.find(s)
+        let line_matches: Vec<(usize, &str)> = line.match_indices(s).collect();
+        for li in line_matches {
+            matches.push((li.0, i));
+        }
     }
-    //line.find(pat)
-    return 1;
 
+    return matches;
 }
 
-fn gather_line(line: &str) -> Iterator<u32, u32> {
-    let searches = [
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "one", "two", "three", "four", "five",
-        "six", "seven", "eight", "nine", "zero",
-    ];
-    for s in searches {
-        line.find(s)
-    }
-}
+// First is index, second is digit
+type SearchMatch = (usize, u32);
