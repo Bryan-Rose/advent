@@ -1,4 +1,4 @@
-use std::{fs};
+use std::fs;
 
 struct Point {
     row: usize,
@@ -21,24 +21,59 @@ fn main() {
         row: height,
     };
 
-    let mut sum: u32 = 0;
+    let mut sum_part_one: u32 = 0;
+    let mut sum_part_two: u32 = 0;
     for row in 0..height {
         let line = lines.get(row).unwrap();
         for col in 0..width {
             let c = line.get(col).unwrap();
             let is_symbol = c.is_ascii_alphanumeric() == false && c.clone() != '.';
             if is_symbol {
-                sum += find_numbers(&lines, &Point { row: row, col: col }, &max)
+                sum_part_one += find_numbers_part_one(&lines, &Point { row: row, col: col }, &max)
                     .iter()
                     .fold(0, |a, b| a + b);
+
+                find_numbers_part_two(&lines, &Point { row: row, col: col }, &max).and_then(|x| {
+                    sum_part_two += x.iter().fold(1, |a, b| a * b);
+                    return Some(1);
+                });
             }
         }
     }
 
-    println!("{sum}");
+    println!("One - {sum_part_one}");
+    println!("Two - {sum_part_two}");
 }
 
-fn find_numbers(arr: &Vec<Vec<char>>, loc: &Point, max: &Point) -> Vec<u32> {
+fn find_numbers_part_two(arr: &Vec<Vec<char>>, loc: &Point, max: &Point) -> Option<Vec<u32>> {
+    let mut r: Vec<u32> = Vec::new();
+    let c = arr.get(loc.row).unwrap().get(loc.col).unwrap();
+    if c != &'*' {
+        return None;
+    }
+
+    let adj = find_adjacent(&arr, loc, &max);
+
+    for a in adj {
+        r.push(parse_number(arr.get(a.row).unwrap(), a.col));
+    }
+
+    r.sort();
+    r.dedup();
+
+    if r.len() != 2 {
+        return None;
+    }
+
+    for s in r.iter() {
+        print!("{s} ");
+    }
+    println!("");
+
+    return Some(r);
+}
+
+fn find_numbers_part_one(arr: &Vec<Vec<char>>, loc: &Point, max: &Point) -> Vec<u32> {
     let mut r: Vec<u32> = Vec::new();
     let adj = find_adjacent(&arr, loc, &max);
 
