@@ -31,10 +31,6 @@ fn main() {
                 sum += find_numbers(&lines, &Point { row: row, col: col }, &max)
                     .iter()
                     .fold(0, |a, b| a + b);
-
-                for n in find_numbers(&lines, &Point { row: row, col: col }, &max) {
-                    println!("{n}");
-                }
             }
         }
     }
@@ -50,6 +46,9 @@ fn find_numbers(arr: &Vec<Vec<char>>, loc: &Point, max: &Point) -> Vec<u32> {
         r.push(parse_number(arr.get(a.row).unwrap(), a.col));
     }
 
+    r.sort();
+    r.dedup();
+
     return r;
 }
 
@@ -57,7 +56,7 @@ fn valid_point(row: i32, col: i32, max: &Point) -> Option<Point> {
     if col >= 0 && (col as usize) < max.col && row >= 0 && (row as usize) < max.row {
         return Some(Point {
             row: row as usize,
-            col: row as usize,
+            col: col as usize,
         });
     } else {
         return None;
@@ -173,9 +172,6 @@ fn find_adjacent(arr: &Vec<Vec<char>>, loc: &Point, max: &Point) -> Vec<Point> {
         }
         None => {}
     };
-
-    r.sort_by_key(|x| x.row);
-    r.dedup_by_key(|x| x).;
 
     return r;
 }
