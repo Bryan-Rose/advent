@@ -11,27 +11,35 @@ fn main() {
     for line in lines {
         let game_opt = parse_line(line);
         if game_opt.is_some() {
-            let game = game_opt.unwrap();
+            let mut game = game_opt.unwrap();
             let game_score = game.calc_score_part_one();
             total_score_part_one += game_score;
+
+            games.push(game);
         } else {
             println!("{line}");
         }
     }
 
+    calc_multiples_part_two(&mut games);
+
     println!("{total_score_part_one}")
 }
 
-fn calc_multiples_part_two(games: &Vec<Game>) {
+fn calc_multiples_part_two(games: &Vec<Game>) -> Vec<Game> {
+    let mut r: Vec<Game> = Vec::new();
+    r.copy_from_slice(games);
     for i in 0..games.len() {
-        let g = games.get(i).unwrap();
+        let mut g = games.get(i).unwrap();
         let winners = g.calc_num_winners_part_two();
         let end_index = (i + winners as usize).min(games.len());
-        for j in 9..end_index {
-            let gc = games.get(j).unwrap();
-            gc.multiple  = 1;
+        for j in i..end_index {
+            let mut gc = games.get(j).unwrap();
+            gc.multiple = 1;
         }
     }
+
+    return r;
 }
 
 fn parse_line(line: &str) -> Option<Game> {
